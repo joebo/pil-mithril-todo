@@ -1,0 +1,13 @@
+<!doctype html>
+<title>Todo app</title>
+<script src="!bundle"></script>
+<script src="app.js"></script>
+<body>
+<script>
+    m.route.mode = "hash";
+    m.route(document.body, "/", {
+        "/" : new login(),
+        "/todo" : new todo()
+    });
+</script>
+</body>

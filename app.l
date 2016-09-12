@@ -28,25 +28,6 @@
         (hashpw "test" "test")
         (server 8088 "!home"))
 
-# todo smarter bundling
-# caching requires patch of ("if-modified-since:" (setq *IfModified (cdr (line)))) to _htHead
-(de bundle ()
-    (let (File "mithril.min.js.gz" I (info File))
-      (when *IfModified
-        (prinl "HTTP/1.1 304 Not Modified^M")
-        (prin "Last-Modified: ")
-        (httpDate (cadr I) (cddr I))
-        (prinl "^M")
-        (prinl "Content-Length: 0^M"))
-      (unless *IfModified
-        (http1 "application/x-javascript" 1000000) 
-        (prinl "Content-Encoding: gzip")
-        (prinl "Content-Length: " (car I) "^M")
-        (prin "Last-Modified: ")
-        (httpDate (cadr I) (cddr I))
-        (prinl "^M")
-        (in File (echo))) ) )
-
 (de build ()
     (msg "in init")
     # (todo-db-add "admin" "test")

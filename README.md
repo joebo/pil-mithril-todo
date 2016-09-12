@@ -11,3 +11,7 @@ Launching:
 
 Tests: 
 `mocha test.js`
+
+## Todo
+1. session timeouts
+1. user creation/removal

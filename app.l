@@ -78,7 +78,6 @@
     (ifn (todo-db-get *User (json-get "nr"))
          (json-out-error "no auth")
          (lose!> @)
-         (sync)
          (json-out-success) ) )
 
 (de json-parse () (setq *Posted (parseJson *Data)))

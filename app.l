@@ -28,10 +28,6 @@
         (hashpw "test" "test")
         (server 8088 "!home"))
 
-(de bundlex ()
-    (msg "getting bundle")
-    (prinl "HTTP/1.1 304 Not Modified^M"))
-
 # todo smarter bundling
 # caching requires patch of ("if-modified-since:" (setq *IfModified (cdr (line)))) to _htHead
 (de bundle ()

@@ -29,7 +29,6 @@
         (server 8088 "!home"))
 
 (de build ()
-    (msg "in init")
     # (todo-db-add "admin" "test")
     (let Salt (gensalt)
          (new! '(+User) 'nm "admin" 'pw (hashpw "admin" Salt) 'slt Salt)))
@@ -64,43 +63,33 @@
 (de todo-list-json ()
     (auth)
     (let Todos (todo-db-list *User)
-         (json-out (list (cons "todos" T Todos))) ) )
+         (json-out "todos" (cons T Todos) ) ) )
 
 (de todo-add-json ()
     (auth)
     (json-parse)
     (let Todo (todo-db-add (; *User nm) (json-get "desc"))
-        (json-out (list (cons "nr" (; Todo nr)))) ) )
+        (json-out "nr" (; Todo nr)) ) )
 
 (de todo-del-json ()
     (auth)
     (json-parse)
     (ifn (todo-db-get *User (json-get "nr"))
-         (json-out-error "no auth")
+         (json-out "error" "no auth")
          (lose!> @)
-         (json-out-success) ) )
+         (json-out "success" 1) ) )
 
 (de json-parse () (setq *Posted (parseJson *Data)))
-
-(de json-get (Val)
-    (cdr (assoc Val *Posted)) )
-
-(de json-out-error (Error)
-    (json-out (list (cons "error" Error))) )
-
-(de json-out-success ()
-    (json-out (list (cons "success" 1))) )
-    
-(de json-out (Val)
+(de json-get (Val) (cdr (assoc Val *Posted)))
+(de json-out (Key Val)
     (disable-chunking)
     (httpHead "application/json" NIL)
-    (ht:Out NIL (printJson Val)) )
+    (ht:Out NIL (printJson (list (cons Key Val)))) )
 
 (de ts () (+ (* 86400 (date)) (time T)))
 (de session-genKey () (pack (getrandom 16)))
     
 (de user-auth ()
-    (msg *Data)
     (let (*Posted (parseJson *Data)
            UserName (json-get "username")
            Password (json-get "password")
@@ -110,10 +99,10 @@
            Auth (= HashedPw (; User pw))
            SessionKey NIL)
     (ifn Auth
-         (json-out (list (cons "noauth" 1)))
+         (json-out "noauth" 1)
          (setq SessionKey (session-genKey))
          (new! '(+Session) 'key SessionKey 'usr User 'ts (ts))
-         (json-out (list (cons "session" SessionKey))))))
+         (json-out "session" SessionKey ))))
                
          
 

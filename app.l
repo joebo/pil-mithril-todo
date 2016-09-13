@@ -3,9 +3,11 @@
 # this will reload after each request, not good for prod
 # (if *Dbg (daemon 'http (load "app.l")))
 
+
 (class +Todo +ApiEntity)         # starts the entity definition
 (rel desc (+Need +String))
 (rel done (+Number))   # task status
+
 (dm val> ()
     (=: done (or (: done) 0)) # sets done to be default 0
     (super))
@@ -14,6 +16,10 @@
     (list (cons "nr" (: nr))
           (cons "desc" (: desc))
           (cons "done" (: done)) ) )
+
+(class +Tag +ApiEntity)
+(rel desc (+Need +String))
+
 
 (de main()
     (pool "taskweb.db")
@@ -29,6 +35,14 @@
     (redirect "/index.html"))
 
 # generates (NIL (auth) (json-parse) (with (db-new-from-json '(+Todo)) (json-out "nr" (: nr))))
-(api-gen-methods '(+Todo))
+(api-gen-methods '(+Todo +Tag))
 
+(de scaffold-entities-list-json ()
+    (auth)
+    (json-out "scaffold-entities" (cons T (uniq (mapcar '((X) (pack (car X))) *Scaffold)))))
+
+(de scaffold-entity-list-json ()
+    (auth)
+    (json-out "scaffold-entity" (cons T (mapcar '((X) (show> X)) (collect 'nr (intern *Entity))))
+              (cons "definition" T (mapcar '((X) (glue " " X)) *Scaffold) ) ) )
 

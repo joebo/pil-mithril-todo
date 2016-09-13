@@ -8,7 +8,9 @@ var todo = function() {
         this.clear = function() { this.row.desc(""); }
     };
 
-    CrudController.call(this, "todo", vm);
+    this.controller = function() {
+        new CrudController("todo", vm).call(this);
+    }
     
     this.vm = vm;
     
@@ -26,7 +28,10 @@ var todo = function() {
                         m("td", m("button", {onclick: c.del.bind(task, task)}, "delete")),
                     ]);
                 })
-            ])
+            ]),
+            m("br"),
+            m("br"),
+            m("a", { href: "/scaffold", text: "scaffold", config: m.route })
         ];
     };
 }
@@ -71,3 +76,4 @@ var login = function() {
 
 
 
+routeBuilders.push(function(routes) { routes["/todo"] = new todo(); })

@@ -3,12 +3,15 @@
 <script src="mithril.min.js"></script>
 <script src="mithril-pil.js"></script>
 <script src="app.js"></script>
+<script src="scaffold.js"></script>
 <body>
 <script>
+    var routes = {
+        "/" : new login()
+    }
+    routeBuilders.forEach(function(build) { build(routes); });
     m.route.mode = "hash";
-    m.route(document.body, "/", {
-        "/" : new login(),
-        "/todo" : new todo()
-    });
+    m.route(document.body, "/", routes);
 </script>
 </body>
+

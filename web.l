@@ -17,10 +17,10 @@
 
 (de json-parse () (setq *Posted (parseJson *Data)))
 (de json-get (Val) (cdr (assoc Val *Posted)))
-(de json-out (Key Val)
+(de json-out (Key Val . @)
     (disable-chunking)
     (httpHead "application/json" NIL)
-    (ht:Out NIL (printJson (list (cons Key Val)))) )
+    (ht:Out NIL (printJson (append (list (cons Key Val)) (rest)))) )
 
 # de foo (Typ . @) (pass new!)) 
 # (setq *Posted (parseJson "{\"desc\":\"test\"}"))
@@ -99,3 +99,6 @@
              (def (intern (pack Nm "-add-json"))
                   (list NIL (list 'api-add-json Typ)) ) ) ) )
                   
+
+(daemon 'rel (push '*Scaffold (list *Class Lst)))
+

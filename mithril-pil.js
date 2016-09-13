@@ -15,12 +15,23 @@ var xhr = new (function() {
         return value;
     }
     var serializer = function(data) {
+        var globals = {}
+        //move params that start with * to globals
+        Object.keys(data).forEach(function(x) {
+            if (x[0] == '*') {
+                globals[x] = data[x];
+                delete data[x];
+            }
+        });
         var json = JSON.stringify(data);
         if (DEBUG) { console.log({session: session.key, json: json }) }
         var postData = '*Data=' + encodeURIComponent(json);
         if (session.key) {
             postData = postData + '&*Session=' + session.key;
         }
+        Object.keys(globals).forEach(function(x) {
+            postData = postData + '&' + x + '=' + encodeURIComponent(globals[x]);
+        });
         return postData;
     };
     this.post = function(url, data) {
@@ -32,21 +43,31 @@ var xhr = new (function() {
     this.listToProp = function(list,prop) {
         return function(rawJson) {
             var json=rawJson[prop];
-            list(json.map(function(x) {
-                var entity = {}
-                Object.keys(x).forEach(function(key) { entity[key] = m.prop(x[key]) });
-                return entity;
-            }));
+            if (Array.isArray(json) && json[0] && typeof(json[0]) != 'object') {
+                list(json);
+            } else {
+                var newList = json.map(function(x) {
+                    var entity = {}
+                    Object.keys(x).forEach(function(key) { entity[key] = m.prop(x[key]) });
+                    return entity;
+                });
+                if (list.promise) {
+                    list.resolve({list: newList, json: rawJson});
+                } else {
+                    list(newList);
+                }
+            }
         }
     }
 });
 
 //helper to wrap list/add/del/edit json calls
-var CrudController = function(entity, vm) {
-    this.controller = function() {
+var CrudController = function(entity, vm, options) {
+    return function() {
         var self = this;
         this.refresh = function() {
-            return xhr.post("!" + entity + "-list-json", {}).then(xhr.listToProp(vm.list, entity))
+            var params = options && options.postParams ? options.postParams : {}
+            return xhr.post("!" + entity + "-list-json", params).then(xhr.listToProp(vm.list, entity))
         }
 
         this.add = function() {
@@ -66,3 +87,5 @@ var CrudController = function(entity, vm) {
         this.refresh();
     };
 }
+
+var routeBuilders = [];

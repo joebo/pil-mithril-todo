@@ -68,7 +68,7 @@
 (dm T @
     (pass super 'nr (genKey 'nr '+ApiEntity) 'usr *User))
 (dm val> () (json-out "nr" (: nr) ) T)
-(dm auth> () (= (; Obj usr) *User))
+(dm auth> () (= (: usr) *User))
 (dm collect> (Typ) (collect 'usr Typ *User))
 
 (de api-del-json (Typ)

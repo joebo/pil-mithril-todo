@@ -13,8 +13,7 @@
 (rel usr (+Need +Ref +Link) NIL (+User))
 (rel desc (+Need +String))
 (rel done (+Ref +Number))   # task status
-
-        
+             
 (class +Session +Entity)
 (rel key (+Need +Key +String))
 (rel usr (+Need +Ref +Link) NIL (+User))
@@ -38,8 +37,7 @@
     (setq *Http1 0))
 
 (de auth ()
-    (let Session (db 'key '+Session *Session)
-         (setq *User (; Session usr) ) ) )
+    (setq *User (; (db 'key '+Session *Session) usr)) )
 
 (de todo-db-add (User Desc)
     (new! '(+Todo)
@@ -61,23 +59,18 @@
          (if (= (; Todo usr) User) Todo ) ) )
          
 (de todo-list-json ()
-    (auth)
     (let Todos (todo-db-list *User)
-         (json-out "todos" (cons T Todos) ) ) )
+     (json-out "todos" (cons T Todos) ) ) )
 
 (de todo-add-json ()
-    (auth)
-    (json-parse)
     (let Todo (todo-db-add (; *User nm) (json-get "desc"))
-        (json-out "nr" (; Todo nr)) ) )
+         (json-out "nr" (; Todo nr)) ) )
 
 (de todo-del-json ()
-    (auth)
-    (json-parse)
     (ifn (todo-db-get *User (json-get "nr"))
-         (json-out "error" "no auth")
-         (lose!> @)
-         (json-out "success" 1) ) )
+     (json-out "error" "no auth")
+     (lose!> @)
+     (json-out "success" 1) ) )
 
 (de json-parse () (setq *Posted (parseJson *Data)))
 (de json-get (Val) (cdr (assoc Val *Posted)))
@@ -109,5 +102,7 @@
 (de home ()
     (redirect "/index.html"))
 
+(for V (filter '((X) (match '(@A ~(chop "-json")) (chop X))) (all))
+      (daemon V (auth) (json-parse)))
 # c:\dev\picoLisp\pil @lib/http.l app.l -"server 8088 \"!home\""
 

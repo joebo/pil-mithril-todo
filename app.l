@@ -10,8 +10,7 @@
     (=: done (or (: done) 0)) # sets done to be default 0
     (super))
 
-# maybe auto-gen
-(de todo-db-show (This)
+(dm show> ()
     (list (cons "nr" (: nr))
           (cons "desc" (: desc))
           (cons "done" (: done)) ) )

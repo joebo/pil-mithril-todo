@@ -68,12 +68,14 @@
 (dm T @
     (pass super 'nr (genKey 'nr '+ApiEntity) 'usr *User))
 (dm val> () (json-out "nr" (: nr) ) T)
+(dm auth> () (= (; Obj usr) *User))
+(dm collect> (Typ) (collect 'usr Typ *User))
 
 (de api-del-json (Typ)
     (auth)
     (json-parse)
     (let Obj (db 'nr Typ (json-get "nr"))
-         (ifn (= (; Obj usr) *User)
+         (ifn (auth> Obj)
               (json-out "error" "no auth")
               (lose!> Obj)
               (json-out "success" 1) ) ) )
@@ -82,17 +84,18 @@
     (auth)
     (json-parse)
     (db-new-from-json Typ) )
-             
+
+(de api-list-json (Typ Nm)
+    (auth)
+    (json-out Nm (cons T (mapcar '((X) (show> X)) (collect> (car Typ) Typ)))))
+    
 (de api-gen-methods (Types)
     (for V Types
          (let (Nm (pack (cdr (chop (lowc V)))) Typ (lit (cons V)))
             (def (intern (pack Nm "-del-json"))
                   (list NIL (list 'api-del-json Typ)) )
-             (def (intern (pack Nm "-list-json")) # todo clean up
-                  (list NIL
-                        (list 'auth)
-                        (list 'json-out Nm
-                              (list 'cons T (list 'mapcar (intern (pack Nm "-db-show")) (list 'collect (lit 'usr) Typ '*User) ) ) ) ) )
+            (def (intern (pack Nm "-list-json"))
+                  (list NIL (list 'api-list-json Typ Nm)) )
              (def (intern (pack Nm "-add-json"))
                   (list NIL (list 'api-add-json Typ)) ) ) ) )
                   

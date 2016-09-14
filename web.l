@@ -58,11 +58,9 @@
 (de db-update-from-json (Cls Extra)
     (let (Props (mapcan '((X) (list (intern (car X)) (cdr X))) *Posted)
           Obj (db 'nr Cls (json-get "nr") ) )
-          (msg (show> Obj))
          (prog2
              (dbSync)
              (for (X Props X) (put> Obj (pop 'X) (pop 'X)))
-             (commit 'upd)
              (if (send 'val> Obj)
                  (commit 'upd)
                (rollback) ) ) ) )

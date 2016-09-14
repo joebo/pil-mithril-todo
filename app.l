@@ -43,6 +43,6 @@
 
 (de scaffold-entity-list-json ()
     (auth)
-    (json-out "scaffold-entity" (cons T (mapcar '((X) (show> X)) (collect 'nr (intern *Entity))))
+    (json-out "scaffold-entity" (cons T (mapcar '((X) (show> X)) (all> (intern *Entity) (intern *Entity))))
               (cons "definition" T (mapcar '((X) (glue " " X)) *Scaffold) ) ) )
 

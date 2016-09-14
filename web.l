@@ -1,14 +1,35 @@
 (off *User)
 (default *SessionTimeout (* 60 60 10))
-(class +User +Entity)
-(rel nm (+Need +Key +String))          # User name
+
+(daemon 'rel (push '*Scaffold (list *Class Lst)))
+
+(class +ApiEntity +Entity)
+(rel nr (+Need +Key +Number)) # defines a key, needed collect/query
+(rel usr (+Need +Ref +Link) NIL (+User))
+(dm T @
+    (pass super 'nr (genKey 'nr '+ApiEntity) 'usr *User))
+(dm val> () (json-out "nr" (: nr) ) T)
+(dm auth> () (= (: usr) *User))
+(dm collect> (Typ) (collect 'usr Typ (or *User T)))
+(dm all> (Typ) (collect 'nr Typ))
+
+(class +User +ApiEntity)
+(rel nm (+Need +Ref +String))          # User name
 (rel pw (+String))               # Password
 (rel slt (+String))               # Password
+(dm show> ()
+    (list (cons "nr" (: nr))
+          (cons "nm" (: nm)) ) )
+
 
 (class +Session +Entity)
 (rel key (+Need +Key +String))
 (rel usr (+Need +Ref +Link) NIL (+User))
 (rel ts (+Need +Number))
+(dm all> (Typ) (collect 'key '(+Session)))
+(dm show> ()
+    (list (cons "usr" (; (get (: usr)) nm))
+          (cons "ts" (: ts)) ) )
 
 
 (de disable-chunking ()
@@ -79,15 +100,6 @@
 # needs to warm up pre-fork on midipix
 (hashpw "test" "test")
 
-(class +ApiEntity +Entity)
-(rel nr (+Need +Key +Number)) # defines a key, needed collect/query
-(rel usr (+Need +Ref +Link) NIL (+User))
-(dm T @
-    (pass super 'nr (genKey 'nr '+ApiEntity) 'usr *User))
-(dm val> () (json-out "nr" (: nr) ) T)
-(dm auth> () (= (: usr) *User))
-(dm collect> (Typ) (collect 'usr Typ (or *User T)))
-
 (de api-del-json (Typ)
     (auth)
     (json-parse)
@@ -124,5 +136,5 @@
                 (list NIL (list 'api-add-json Typ)) ) ) ) )
                   
 
-(daemon 'rel (push '*Scaffold (list *Class Lst)))
+
 

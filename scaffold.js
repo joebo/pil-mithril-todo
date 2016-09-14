@@ -57,7 +57,7 @@ var scaffoldTableList = function() {
                 vm.rows().map(function(row) {
                     return m("tr", [
                         vm.cols().map(function(col) {
-                            return m("td", row[col]());
+                            return m("td", row[col] ? row[col]() : '');
                         })                   
                     ])
                 })

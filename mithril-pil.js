@@ -2,10 +2,16 @@
 var DEBUG = 0;
 var session = new (function() {
     this.key = (typeof sessionStorage != 'undefined') ? sessionStorage.getItem('sessionKey') : '';
+    this.name = (typeof sessionStorage != 'undefined') ? sessionStorage.getItem('sessionName') : '';
     this.setKey = function(value) {
         if (typeof sessionStorage != 'undefined') sessionStorage.setItem('sessionKey', value);
         this.key = value;
     };
+    this.setName = function(value) {
+        if (typeof sessionStorage != 'undefined') sessionStorage.setItem('sessionName', value);
+        this.name = value;
+    };
+
 });
 
 //helper to serialize ajax calls and do some logging
@@ -83,6 +89,9 @@ var CrudController = function(entity, vm, options) {
                     });
             }
         };
+        this.update = function(row) {
+            return xhr.post("!" + entity +"-update-json", row).then(self.refresh);
+        }
         this.del = function(row) {
             return xhr.post("!" + entity +"-del-json", row).then(self.refresh);
         };

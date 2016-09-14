@@ -34,6 +34,17 @@
                  (commit 'upd)
                (rollback) ) ) ) )
 
+(de db-update-from-json (Cls Extra)
+    (let (Props (mapcan '((X) (list (intern (car X)) (cdr X))) *Posted)
+          Obj (db 'nr Cls (json-get "nr") ) )
+          (msg (show> Obj))
+         (prog2
+             (dbSync)
+             (for (X Props X) (put> Obj (pop 'X) (pop 'X)))
+             (commit 'upd)
+             (if (send 'val> Obj)
+                 (commit 'upd)
+               (rollback) ) ) ) )
 
 (de ts () (+ (* 86400 (date)) (time T)))
 
@@ -91,6 +102,11 @@
     (json-parse)
     (db-new-from-json Typ) )
 
+(de api-update-json (Typ)
+    (auth)
+    (json-parse)
+    (db-update-from-json Typ) )
+
 (de api-list-json (Typ Nm)
     (auth)
     (json-out Nm (cons T (mapcar '((X) (show> X)) (collect> (car Typ) Typ)))))
@@ -98,12 +114,14 @@
 (de api-gen-methods (Types)
     (for V Types
          (let (Nm (pack (cdr (chop (lowc V)))) Typ (lit (cons V)))
-            (def (intern (pack Nm "-del-json"))
-                  (list NIL (list 'api-del-json Typ)) )
-            (def (intern (pack Nm "-list-json"))
-                  (list NIL (list 'api-list-json Typ Nm)) )
-             (def (intern (pack Nm "-add-json"))
-                  (list NIL (list 'api-add-json Typ)) ) ) ) )
+           (def (intern (pack Nm "-del-json"))
+                (list NIL (list 'api-del-json Typ)) )
+           (def (intern (pack Nm "-list-json"))
+                (list NIL (list 'api-list-json Typ Nm)) )
+           (def (intern (pack Nm "-update-json"))
+                  (list NIL (list 'api-update-json Typ)) )
+           (def (intern (pack Nm "-add-json"))
+                (list NIL (list 'api-add-json Typ)) ) ) ) )
                   
 
 (daemon 'rel (push '*Scaffold (list *Class Lst)))

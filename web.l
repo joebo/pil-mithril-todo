@@ -1,5 +1,5 @@
 (off *User)
-
+(default *SessionTimeout (* 60 60 10))
 (class +User +Entity)
 (rel nm (+Need +Key +String))          # User name
 (rel pw (+String))               # Password
@@ -38,7 +38,13 @@
 (de ts () (+ (* 86400 (date)) (time T)))
 
 (de auth ()
-    (setq *User (; (db 'key '+Session *Session) usr)) )
+    (let Session (db 'key '+Session *Session)
+        (setq *User (; Session usr))
+         (ifn (> (- (ts) (; Session ts)) *SessionTimeout)
+              (put!> Session 'ts (ts))
+              (json-out "error" "timeout")
+              (throw 'http) )) )
+
 
 (de session-genKey () (pack (getrandom 16)))
     
@@ -69,7 +75,7 @@
     (pass super 'nr (genKey 'nr '+ApiEntity) 'usr *User))
 (dm val> () (json-out "nr" (: nr) ) T)
 (dm auth> () (= (: usr) *User))
-(dm collect> (Typ) (collect 'usr Typ *User))
+(dm collect> (Typ) (collect 'usr Typ (or *User T)))
 
 (de api-del-json (Typ)
     (auth)

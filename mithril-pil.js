@@ -42,6 +42,9 @@ var xhr = new (function() {
 
     this.listToProp = function(list,prop) {
         return function(rawJson) {
+            if (rawJson.error && rawJson.error == 'timeout') {
+                m.route('/login');
+            }
             var json=rawJson[prop];
             if (Array.isArray(json) && json[0] && typeof(json[0]) != 'object') {
                 list(json);

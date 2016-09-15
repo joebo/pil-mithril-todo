@@ -48,7 +48,14 @@ var todo = function() {
     
     this.view = function(c) {
         return [
-            m("input[type='text'][placeholder='todo']", {onchange: m.withAttr("value", vm.row.desc), value: vm.row.desc()}),
+            m("input[type='text'][placeholder='todo']",{
+                onkeypress: function(e) {
+                    m.withAttr('value', vm.row.desc)(e);
+                    if (e.keyCode == 13) {
+                        c.add();
+                    }
+                }
+            }),
             m("button", {onclick: c.add}, "Add"),
             m("table", [
                 vm.list().map(function(task, index) {

@@ -22,14 +22,16 @@ var xhr = new (function() {
     }
     var serializer = function(data) {
         var globals = {}
+
+        var postData = JSON.parse(JSON.stringify(data));
         //move params that start with * to globals
-        Object.keys(data).forEach(function(x) {
+        Object.keys(postData).forEach(function(x) {
             if (x[0] == '*') {
-                globals[x] = data[x];
-                delete data[x];
+                globals[x] = postData[x];
+                delete postData[x];
             }
         });
-        var json = JSON.stringify(data);
+        var json = JSON.stringify(postData);
         if (DEBUG) { console.log({session: session.key, json: json }) }
         var postData = '*Data=' + encodeURIComponent(json);
         if (session.key) {
@@ -71,14 +73,31 @@ var xhr = new (function() {
 });
 
 //helper to wrap list/add/del/edit json calls
+//use mount to build view
 var CrudController = function(entity, vm, options) {
     return function() {
         var self = this;
+
+        //only call initial refresh after element has been added to dom to prevent infinite loop
+        this.mount = function(el) {
+            return m("div", {
+                id: entity, 
+                config: function(el, isInit, context) {
+                    if (!isInit) {
+                        self.refresh();
+                    }
+                }
+            }, el);
+        }
+
+
+
         this.refresh = function() {
+            if (this._refresh) { this._refresh(); }
             var params = options && options.postParams ? options.postParams : {}
             return xhr.post("!" + entity + "-list-json", params).then(xhr.listToProp(vm.list, entity))
         }
-
+        
         this.add = function() {
             if (vm.validate()) {
                 return xhr.post("!" + entity + "-add-json", vm.row)
@@ -96,7 +115,7 @@ var CrudController = function(entity, vm, options) {
             return xhr.post("!" + entity +"-del-json", row).then(self.refresh);
         };
 
-        this.refresh();
+        //this.refresh();
     };
 }
 

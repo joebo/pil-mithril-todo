@@ -45,9 +45,10 @@ var todo = function() {
     }
     
     this.vm = vm;
+
     
     this.view = function(c) {
-        return [
+        return c.mount([
             m("input[type='text'][placeholder='todo']",{
                 onkeypress: function(e) {
                     m.withAttr('value', vm.row.desc)(e);
@@ -69,7 +70,7 @@ var todo = function() {
                     ]);
                 })
             ])
-        ];
+        ]);
     };
 }
 

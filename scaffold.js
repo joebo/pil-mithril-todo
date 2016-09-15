@@ -1,4 +1,11 @@
-var scaffoldList = function() {
+//converts +Todo to todo
+var scaffoldEntityToShort = function(entity) {
+    if (entity[0] == '+') {
+        entity = entity.slice(1);
+    }
+    return entity.toLowerCase();
+}
+var ScaffoldList = function() {
      var vm = new function() {
          this.list =  m.prop([]);
      }
@@ -8,7 +15,7 @@ var scaffoldList = function() {
     }
 
     this.view = function(c) {
-        return [
+        return c.mount([
             m("h1", "Entities"),
             m("ol",[
                 vm.list().map(function(entity) {
@@ -17,56 +24,105 @@ var scaffoldList = function() {
                     ])
                 })
              ])
-        ];
+        ]);
     }
 }
 
-var scaffoldTableList = function() {
+var ScaffoldTableList = function() {
     var _vm = function() {
         this.list =  m.deferred();
         this.cols = m.prop([]);
         this.table = m.prop("");
         this.rows = m.prop([]);
     }
-    var vm = new _vm();
-    this.controller = function() {
-        vm = new _vm();
-        vm.table(m.route.param("table"));
+    console.log('initializing');
+    this.controller = function(args) {
+        console.log('new controller!');
+        var self = this;
+        var vm = new _vm();
+        this.vm = vm;
+        vm.table((args && args.table) ? args.table : m.route.param("table"));
         var options = {
             postParams: { "*Entity" : vm.table() }
         }
-        vm.list.promise.then(function(resp) {
-            var table = m.route.param("table");
-            var rawCols = resp.json.definition.map(function(x) { return x.split(/[\s\+]/).splice(1); });
-            var tableCols = rawCols.filter(function(x) { return ('+' + x[0]) == table });
-            vm.cols(["nr"].concat(tableCols.map(function(x) { return x[1] })));
-            vm.rows(resp.list);
-        });
+
+        this.addRow = function() {
+            m.route('/scaffold/' + vm.table() + '/add');
+        }
+        this.editRow = function(row) {
+            console.log(row);
+            m.route('/scaffold/' + vm.table() + '/edit/' + row.nr());
+        }
+        this._refresh = function() {
+            vm.list = m.deferred();
+            vm.list.promise.then(function(resp) {
+                var table = m.route.param("table");
+                var rawCols = resp.json.definition.map(function(x) { return x.split(/[\s\+]/).splice(1); });
+                var tableCols = rawCols.filter(function(x) { return ('+' + x[0]) == table });
+                vm.cols(["nr"].concat(tableCols.map(function(x) { return x[1] })));
+                vm.rows(resp.list);
+                console.log('response is:');
+                console.log(resp);
+                console.log(vm.rows());
+                console.log('done');
+            });
+
+        }
+        this.deleteRow = function(row) {
+            if (!confirm('are you sure you wish to delete this row?')) { return; }
+            return xhr.post("!" + scaffoldEntityToShort(vm.table()) +"-del-json", row).then(function() {
+                self.refresh();
+            });
+        }
         new CrudController("scaffold-entity", vm, options).call(this);
     }
     
     this.view = function(ctrl) {
-        return [
-            m("h1", vm.table()),
-            m("table", [
-                m("tr", [
-                    vm.cols().map(function(col) {
-                        return m("td", col)
-                    })
-                ]),
-                vm.rows().map(function(row) {
-                    return m("tr", [
+        var vm = ctrl.vm;
+        console.log(vm.rows());
+        return ctrl.mount([
+                m("h1", vm.table()),
+                m("input[type='button'][class='button']", { value: 'add', onclick: ctrl.addRow}),
+                m("table", [
+                    m("tr", [
                         vm.cols().map(function(col) {
-                            return m("td", row[col] ? row[col]() : '');
-                        })                   
-                    ])
-                })
-            ])
-        ];
+                            return m("td", col)
+                        }),
+                        m("td", "action")
+                    ]),
+                    vm.rows().map(function(row) {
+                        return m("tr", [
+                            vm.cols().map(function(col) {
+                                return m("td", row[col] ? row[col]() : '');
+                            }),
+                            m("td[class='action']", [
+                                m("input[type='button'][class='button button-small]", {
+                                    value: 'edit',
+                                    onclick: ctrl.editRow.bind(row, row)
+                                }),
+                                m("input[type='button'][class='button button-small button-outline']", {
+                                    value: 'delete',
+                                    onclick: ctrl.deleteRow.bind(row, row)
+                                })
+                            ])
+                        ])
+                    })
+                ])
+        ]);
     }
 }
 
+var ScaffoldTableForm = function() {
+    this.controller = function() {
+
+    }
+    this.view = function() {
+
+    }
+}
 routeBuilders.push(function(routes) {
-    routes["/scaffold"] = new scaffoldList();
-    routes["/scaffold/:table"] = new scaffoldTableList();
+    routes["/scaffold"] = new ScaffoldList();
+    routes["/scaffold/:table/add"] = new ScaffoldTableForm();
+    routes["/scaffold/:table/edit/:id"] = new ScaffoldTableForm();
+    routes["/scaffold/:table"] = new ScaffoldTableList();
 });

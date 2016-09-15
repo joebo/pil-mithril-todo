@@ -40,10 +40,13 @@
     m.mount(document.getElementById("nav"), new navigation());
 </script>
         <script>
-        var ws = new WebSocket("ws://localhost:9999/asdasdf");
-        ws.onopen = function(e) { console.log("opened"); }
-        ws.onerror = function(e) { console.log("error"); }
-        ws.onmessage = function(e) { console.log(e.data); window.location.reload(); }
+        //used to auto-refresh on emacs file save as emacs has a websocket listener configured
+        if (window.location.href.indexOf('localhost') >=0) {
+            var ws = new WebSocket("ws://localhost:9999/asdasdf");
+            ws.onopen = function(e) { console.log("opened"); }
+            ws.onerror = function(e) { console.log("error"); }
+            ws.onmessage = function(e) { console.log(e.data); window.location.reload(); }
+        }
       </script>
 </body>
 

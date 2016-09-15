@@ -93,7 +93,7 @@ var CrudController = function(entity, vm, options) {
 
 
         this.refresh = function() {
-            if (this._refresh) { this._refresh(); }
+            if (this.beforeRefresh) { this.beforeRefresh(); }
             var params = options && options.postParams ? options.postParams : {}
             return xhr.post("!" + entity + "-list-json", params).then(xhr.listToProp(vm.list, entity))
         }

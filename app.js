@@ -46,7 +46,6 @@ var todo = function() {
     
     this.vm = vm;
 
-    
     this.view = function(c) {
         return c.mount([
             m("input[type='text'][placeholder='todo']",{
@@ -69,7 +68,7 @@ var todo = function() {
                         m("td", m("input[type='button'][class='button button-small button-outline'][value='delete']", {onclick: c.del.bind(task, task)})),
                     ]);
                 })
-            ])
+            ]),
         ]);
     };
 }

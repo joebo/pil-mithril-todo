@@ -12,6 +12,8 @@
 (dm auth> () (= (: usr) *User))
 (dm collect> (Typ) (collect 'usr Typ (or *User T)))
 (dm all> (Typ) (collect 'nr Typ))
+(dm show> () (list
+                  (cons "nr" (: nr) ) ) )
 
 (class +User +ApiEntity)
 (rel nm (+Need +Ref +String))          # User name
@@ -47,7 +49,8 @@
 # (setq *Posted (parseJson "{\"desc\":\"test\"}"))
 
 (de db-new-from-json (Cls Extra)
-    (let Props (mapcan '((X) (list (intern (car X)) (cdr X))) *Posted)
+    (let Props (mapcan '((X) (ifn (= (car X) "nr") (list (intern (car X)) (cdr X)))) *Posted)
+         (msg Props)
          (prog2
              (dbSync)
              (apply 'new  (append (cons (db: Cls) Cls Props) Extra))

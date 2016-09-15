@@ -54,7 +54,8 @@ var todo = function() {
                     if (e.keyCode == 13) {
                         c.add();
                     }
-                }
+                },
+                value: vm.row.desc()
             }),
             m("button", {onclick: c.add}, "Add"),
             m("table", [

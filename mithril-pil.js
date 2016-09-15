@@ -23,15 +23,18 @@ var xhr = new (function() {
     var serializer = function(data) {
         var globals = {}
 
-        var postData = JSON.parse(JSON.stringify(data));
+        var postData = {}; //JSON.parse(JSON.stringify(data));
         //move params that start with * to globals
-        Object.keys(postData).forEach(function(x) {
+        Object.keys(data).forEach(function(x) {
             if (x[0] == '*') {
-                globals[x] = postData[x];
-                delete postData[x];
+                globals[x] = data[x];
+            }
+            else if (!x.endsWith('-gui')) { //gui only
+                postData[x] = data[x];
             }
         });
         var json = JSON.stringify(postData);
+        console.log(json);
         if (DEBUG) { console.log({session: session.key, json: json }) }
         var postData = '*Data=' + encodeURIComponent(json);
         if (session.key) {

@@ -46,6 +46,7 @@ var ScaffoldTableController = function(entity, resource, vm, options, id) {
         vm.table = m.prop(entity);
         vm.rows = m.prop([]);
         vm.definition = m.prop([]);
+        vm.links = {};
         
         this.beforeRefresh = function() {
             vm.row = null; //clear out the current row
@@ -65,6 +66,9 @@ var ScaffoldTableController = function(entity, resource, vm, options, id) {
                     });
                     vm.row = row;
                 }
+
+                //picklists
+                vm.links = resp.json.links;
             });
 
         };
@@ -99,7 +103,11 @@ var ScaffoldTableList = function() {
             });
         };
         this.buildTableCell = function(row, col) {
-            var cell = m("span", row[col] ? row[col]() : '');
+            var val = row[col] ? row[col]() : '';
+            if (row[col+'-gui']) {
+                val = row[col+'-gui']();
+            }
+            var cell = m("span", val);
             if (ScaffoldOptions.buildTableCellHook) {
                 cell = ScaffoldOptions.buildTableCellHook(cell, {table:table,row:row,col:col});
             }
@@ -167,17 +175,40 @@ var ScaffoldTableForm = function(componentOptions) {
             var isText = def.indexOf('Text') >= 0;
             var isNumber = def.indexOf('Number') >= 0;
             var isRequired = def.indexOf('Need') >= 0;
+            var isLink = def.indexOf('Link') >= 0;
+            
             var config = { };
             if (isDisabled) {
                 config.disabled = "disabled";
             }
             var col = def[0];
             var vmcol = vm.row[col] ? vm.row[col] : '';
-            config.value = vmcol();
+
             if (vmcol) {
                 config.onchange = m.withAttr("value", vmcol);
+                config.value = vmcol();
             }
-            var el = m("input[type='text']", config);
+            if (isLink) {
+                var linkTable = def[def.indexOf('Link') +1];
+                var options = vm.links['+' + linkTable];
+                if (!options) {
+                    console.log('no options found for '+ linkTable);
+                } else {
+                    var optionNodes = options.map(function(option) {
+                        var optionConfig =  { value: option.key, text: option.text };
+                        if (option.key == config.value) {
+                            optionConfig.selected = "selected";
+                        }
+                        return m("option", optionConfig);
+                    });
+                }
+                var el = m("select", config, [
+                    m("option"),
+                    optionNodes
+                ]);
+            } else {
+                var el = m("input[type='text']", config);
+            }
             if (componentOptions.buildInputHook) {
                 el = componentOptions.buildInputHook(el, {table: table, col: col, row: vm.row, id: id});
             }
@@ -189,7 +220,7 @@ var ScaffoldTableForm = function(componentOptions) {
         };
 
         this.save = function() {
-
+            console.log(JSON.stringify(vm.row));
             var method = vm.row.nr() ? 'update' : 'add';
             return xhr.post("!" + scaffoldEntityToShort(vm.table()) +"-" + method +"-json", vm.row).then(function() {
                 self.afterSave();

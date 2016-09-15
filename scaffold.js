@@ -35,9 +35,7 @@ var ScaffoldTableList = function() {
         this.table = m.prop("");
         this.rows = m.prop([]);
     }
-    console.log('initializing');
     this.controller = function(args) {
-        console.log('new controller!');
         var self = this;
         var vm = new _vm();
         this.vm = vm;
@@ -50,7 +48,6 @@ var ScaffoldTableList = function() {
             m.route('/scaffold/' + vm.table() + '/add');
         }
         this.editRow = function(row) {
-            console.log(row);
             m.route('/scaffold/' + vm.table() + '/edit/' + row.nr());
         }
         this._refresh = function() {
@@ -61,10 +58,6 @@ var ScaffoldTableList = function() {
                 var tableCols = rawCols.filter(function(x) { return ('+' + x[0]) == table });
                 vm.cols(["nr"].concat(tableCols.map(function(x) { return x[1] })));
                 vm.rows(resp.list);
-                console.log('response is:');
-                console.log(resp);
-                console.log(vm.rows());
-                console.log('done');
             });
 
         }
@@ -79,7 +72,7 @@ var ScaffoldTableList = function() {
     
     this.view = function(ctrl) {
         var vm = ctrl.vm;
-        console.log(vm.rows());
+
         return ctrl.mount([
                 m("h1", vm.table()),
                 m("input[type='button'][class='button']", { value: 'add', onclick: ctrl.addRow}),

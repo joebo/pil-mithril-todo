@@ -117,3 +117,20 @@ var login = function() {
 routeBuilders.push(function(routes) {
     routes["/todo"] = new todo();
 })
+
+
+//extend scaffold with checkbox for table
+ScaffoldOptions.buildTableCellHook = function(el, ctx) {
+    if (ctx.table == '+Todo' && ctx.col == 'done') {
+        el = m("input[type='checkbox'][disabled=disabled]", { checked: ctx.row.done() == 1 } );
+    } 
+    return el;
+}
+
+//extend scaffold with checkbox
+ScaffoldOptions.buildInputHook = function(el, ctx) {
+    if (ctx.table == '+Todo' && ctx.col == 'done') {
+        el = m("input[type='checkbox']", { checked: ctx.row.done() == 1, onclick: m.withAttr("checked", function(val) { ctx.row.done(val?1:0); }) } );
+    } 
+    return el;
+}

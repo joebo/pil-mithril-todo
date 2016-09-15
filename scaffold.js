@@ -1,5 +1,11 @@
 /*global m CrudController xhr routeBuilders */
 //converts +Todo to todo
+
+var ScaffoldOptions = {
+    buildTableCellHook : null,
+    buildInputHook : null
+};
+
 var scaffoldEntityToShort = function(entity) {
     if (entity[0] == '+') {
         entity = entity.slice(1);
@@ -67,7 +73,7 @@ var ScaffoldTableController = function(entity, resource, vm, options, id) {
 };
 
 var ScaffoldTableList = function() {
-    var vm = { }
+    var vm = { };
     this.controller = function(args) {
         var self = this;
 
@@ -92,6 +98,13 @@ var ScaffoldTableList = function() {
                 self.refresh();
             });
         };
+        this.buildTableCell = function(row, col) {
+            var cell = m("span", row[col] ? row[col]() : '');
+            if (ScaffoldOptions.buildTableCellHook) {
+                cell = ScaffoldOptions.buildTableCellHook(cell, {table:table,row:row,col:col});
+            }
+            return m("td", cell);
+        };
     };
     
     this.view = function(ctrl) {
@@ -107,9 +120,7 @@ var ScaffoldTableList = function() {
                     ]),
                     vm.rows().map(function(row) {
                         return m("tr", [
-                            vm.cols().map(function(col) {
-                                return m("td", row[col] ? row[col]() : '');
-                            }),
+                            vm.cols().map(function(col) { return ctrl.buildTableCell(row, col); }),
                             m("td[class='action']", [
                                 m("input[type='button'][class='button button-small]", {
                                     value: 'edit',
@@ -125,12 +136,15 @@ var ScaffoldTableList = function() {
                 ])
         ]);
     };
-}
+};
 
-var ScaffoldTableForm = function() {
+// componentOptions.
+var ScaffoldTableForm = function(componentOptions) {
     var vm = {
-        id: m.prop(""),
+        id: m.prop("")
     };
+    componentOptions = componentOptions || {};
+    
     this.controller = function(args) {
         var self = this;
 
@@ -157,13 +171,22 @@ var ScaffoldTableForm = function() {
             if (isDisabled) {
                 config.disabled = "disabled";
             }
-            var vmcol = vm.row[def[0]] ? vm.row[def[0]] : '';
+            var col = def[0];
+            var vmcol = vm.row[col] ? vm.row[col] : '';
             config.value = vmcol();
             if (vmcol) {
                 config.onchange = m.withAttr("value", vmcol);
             }
-            return m("input[type='text']", config);
-        }
+            var el = m("input[type='text']", config);
+            if (componentOptions.buildInputHook) {
+                el = componentOptions.buildInputHook(el, {table: table, col: col, row: vm.row, id: id});
+            }
+            if (ScaffoldOptions.buildInputHook) {
+                el = ScaffoldOptions.buildInputHook(el, {table: table, col: col, row: vm.row, id: id});
+            }
+
+            return el;
+        };
 
         this.save = function() {
 
@@ -175,7 +198,7 @@ var ScaffoldTableForm = function() {
 
         this.afterSave = function() {
             m.route("/scaffold/" + vm.table());
-        }
+        };
     };
 
     this.view = function(ctrl) {
@@ -187,7 +210,7 @@ var ScaffoldTableForm = function() {
                     return [
                         m("label", col[0]),
                         ctrl.buildInput(col)
-                    ]
+                    ];
                 })
                )
              ),
@@ -201,3 +224,4 @@ routeBuilders.push(function(routes) {
     routes["/scaffold/:table/edit/:id"] = new ScaffoldTableForm();
     routes["/scaffold/:table"] = new ScaffoldTableList();
 });
+
